@@ -155,20 +155,30 @@ else:
 
     # Gráfico de barras da conversão por tipo de serviço
     st.subheader("Conversão por Tipo de Serviço (Serviço Individual)")
-    df_conversao_tipo = df_filtered.groupby('tipo_servico')['status_conversao_servico'].value_counts(normalize=True).unstack().fillna(0)
-    if not df_conversao_tipo.empty:
-        fig_conv_tipo = px.bar(df_conversao_tipo,
-                               x=df_conversao_tipo.index,
-                               y=['Convertido', 'Não Convertido'],
-                               title='Proporção de Conversão por Tipo de Serviço',
-                               labels={'value':'Proporção', 'variable':'Status'},
-                               barmode='group')
-        st.plotly_chart(fig_conv_tipo)
-        st.markdown("""
-        **Insight:** Este gráfico mostra como a taxa de conversão varia entre diferentes tipos de serviço (ex: 'boarding', 'day_care').
-        Observe se há tipos de serviço com uma proporção significativamente maior de 'Não Convertido',
-        o que pode indicar um problema específico nesse segmento durante o Carnaval.
-        """)
+    if not df_filtered.empty and 'tipo_servico' in df_filtered.columns and 'status_conversao_servico' in df_filtered.columns:
+        df_conversao_tipo = df_filtered.groupby('tipo_servico')['status_conversao_servico'].value_counts(normalize=True).unstack().fillna(0)
+        
+        # Garante que ambas as colunas 'Convertido' e 'Não Convertido' existam
+        expected_cols = ['Convertido', 'Não Convertido']
+        for col in expected_cols:
+            if col not in df_conversao_tipo.columns:
+                df_conversao_tipo[col] = 0.0 # Adiciona a coluna com zeros se estiver faltando
+
+        if not df_conversao_tipo.empty:
+            fig_conv_tipo = px.bar(df_conversao_tipo,
+                                x=df_conversao_tipo.index,
+                                y=['Convertido', 'Não Convertido'],
+                                title='Proporção de Conversão por Tipo de Serviço',
+                                labels={'value':'Proporção', 'variable':'Status'},
+                                barmode='group')
+            st.plotly_chart(fig_conv_tipo)
+            st.markdown("""
+            **Insight:** Este gráfico mostra como a taxa de conversão varia entre diferentes tipos de serviço (ex: 'boarding', 'day_care').
+            Observe se há tipos de serviço com uma proporção significativamente maior de 'Não Convertido',
+            o que pode indicar um problema específico nesse segmento durante o Carnaval.
+            """)
+        else:
+            st.warning("Dados insuficientes para plotar a Conversão por Tipo de Serviço com os filtros aplicados.")
     else:
         st.warning("Dados insuficientes para plotar a Conversão por Tipo de Serviço com os filtros aplicados.")
 
