@@ -18,6 +18,12 @@ def carregar_dados():
             df['dt_checkin'] = pd.to_datetime(df['dt_checkin'], errors='coerce')
             df['dt_checkout'] = pd.to_datetime(df['dt_checkout'], errors='coerce')
 
+            # --- Adição para limpar a coluna 'teve_resposta_formatado' ---
+            # Garante que a coluna é string e remove espaços em branco extras
+            if 'teve_resposta_formatado' in df.columns:
+                df['teve_resposta_formatado'] = df['teve_resposta_formatado'].astype(str).str.strip()
+            # --- Fim da adição ---
+
             return df
         except FileNotFoundError:
             st.error("Arquivo 'dados_carnaval_2025.csv' não encontrado. Por favor, certifique-se de que o arquivo está na mesma pasta do 'app.py'.")
@@ -64,10 +70,12 @@ selected_status_conv_servico = st.sidebar.multiselect(
 )
 
 # 3. Filtro por Resposta do Herói
+# Garante que as opções do multiselect também venham limpas
+options_teve_resposta = df['teve_resposta_formatado'].unique().tolist()
 selected_teve_resposta = st.sidebar.multiselect(
     "Teve Resposta do Herói:",
-    options=df['teve_resposta_formatado'].unique().tolist(),
-    default=df['teve_resposta_formatado'].unique().tolist()
+    options=options_teve_resposta,
+    default=options_teve_resposta
 )
 
 # 4. Filtro por Faixa de Tempo de Resposta (horas)
