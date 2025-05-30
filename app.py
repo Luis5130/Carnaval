@@ -53,37 +53,56 @@ st.write(f"Clientes que converteram pelo menos uma necessidade: {clientes_conver
 
 # Exemplo: Gráfico de barras da conversão por tipo de serviço
 st.subheader("Conversão por Tipo de Serviço (Serviço Individual)")
-df_conversao_tipo = df.groupby('tipo_servico')['status_conversao_servico'].value_counts(normalize=True).unstack().fillna(0)
-st.dataframe(df_conversao_tipo)
+# Verifica se o DataFrame filtrado não está vazio antes de agrupar
+if not df.empty and 'tipo_servico' in df.columns and 'status_conversao_servico' in df.columns:
+    df_conversao_tipo = df.groupby('tipo_servico')['status_conversao_servico'].value_counts(normalize=True).unstack().fillna(0)
+    st.dataframe(df_conversao_tipo)
 
-fig_conv_tipo = px.bar(df_conversao_tipo,
-                       x=df_conversao_tipo.index,
-                       y=['Convertido', 'Não Convertido'],
-                       title='Proporção de Conversão por Tipo de Serviço',
-                       labels={'value':'Proporção', 'variable':'Status'},
-                       barmode='group')
-st.plotly_chart(fig_conv_tipo)
+    fig_conv_tipo = px.bar(df_conversao_tipo,
+                           x=df_conversao_tipo.index,
+                           y=['Convertido', 'Não Convertido'],
+                           title='Proporção de Conversão por Tipo de Serviço',
+                           labels={'value':'Proporção', 'variable':'Status'},
+                           barmode='group')
+    st.plotly_chart(fig_conv_tipo)
+else:
+    st.warning("Dados insuficientes para plotar a Conversão por Tipo de Serviço.")
 
 
 # Exemplo: Distribuição do tempo de resposta para serviços convertidos vs. não convertidos
 st.subheader("Distribuição do Tempo de Resposta (Horas)")
-fig_tempo_resposta = px.histogram(df, x="tempo_de_resposta_horas", color="status_conversao_servico",
-                                  marginal="box", # shows boxplot on top
-                                  nbins=50, # adjust number of bins as needed
-                                  title="Tempo de Resposta em Horas por Status de Conversão",
-                                  labels={"tempo_de_resposta_horas": "Tempo de Resposta (horas)"})
-st.plotly_chart(fig_tempo_resposta)
+if not df.empty and 'tempo_de_resposta_horas' in df.columns and 'status_conversao_servico' in df.columns:
+    fig_tempo_resposta = px.histogram(df, x="tempo_de_resposta_horas", color="status_conversao_servico",
+                                      marginal="box", # shows boxplot on top
+                                      nbins=50, # adjust number of bins as needed
+                                      title="Tempo de Resposta em Horas por Status de Conversão",
+                                      labels={"tempo_de_resposta_horas": "Tempo de Resposta (horas)"})
+    st.plotly_chart(fig_tempo_resposta)
+else:
+    st.warning("Dados insuficientes para plotar a Distribuição do Tempo de Resposta.")
 
 
 # Exemplo: Distribuição da quantidade de heróis contatados
 st.subheader("Número de Heróis Contatados por Cliente vs. Conversão")
 # Criar um dataframe de clientes únicos para este gráfico
 df_clientes_unicos = df[['id_cliente', 'quantidade_herois_contatados', 'status_conversao_cliente']].drop_duplicates()
-fig_herois_contatados = px.histogram(df_clientes_unicos, x="quantidade_herois_contatados", color="status_conversao_cliente",
-                                      nbins=max(df_clientes_unicos['quantidade_herois_contatados'].max(), 5), # dynamic bins
-                                      title="Número de Heróis Contatados por Clientes",
-                                      labels={"quantidade_herois_contatados": "Nº de Heróis Contatados"})
-st.plotly_chart(fig_herois_contatados)
+
+# Adiciona a verificação para garantir que o DataFrame não está vazio e a coluna existe
+if not df_clientes_unicos.empty and 'quantidade_herois_contatados' in df_clientes_unicos.columns:
+    # Garante que o valor máximo é um número antes de usar em nbins
+    max_herois = df_clientes_unicos['quantidade_herois_contatados'].max()
+    if pd.isna(max_herois):
+        nbins_val = 5 # Valor padrão se não houver dados válidos
+    else:
+        nbins_val = max(int(max_herois), 5) # Garante que seja pelo menos 5 bins
+
+    fig_herois_contatados = px.histogram(df_clientes_unicos, x="quantidade_herois_contatados", color="status_conversao_cliente",
+                                          nbins=nbins_val, # dynamic bins
+                                          title="Número de Heróis Contatados por Clientes",
+                                          labels={"quantidade_herois_contatados": "Nº de Heróis Contatados"})
+    st.plotly_chart(fig_herois_contatados)
+else:
+    st.warning("Dados de 'quantidade_herois_contatados' não disponíveis ou inválidos para plotar o histograma.")
 
 
 st.subheader("Dados Brutos (Amostra)")
