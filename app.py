@@ -158,18 +158,22 @@ else:
     if not df_filtered.empty and 'tipo_servico' in df_filtered.columns and 'status_conversao_servico' in df_filtered.columns:
         df_conversao_tipo = df_filtered.groupby('tipo_servico')['status_conversao_servico'].value_counts(normalize=True).unstack().fillna(0)
         
-        # Garante que ambas as colunas 'Convertido' e 'Não Convertido' existam
+        # Garante que ambas as colunas 'Convertido' e 'Não Convertido' existam e são numéricas
         expected_cols = ['Convertido', 'Não Convertido']
         for col in expected_cols:
             if col not in df_conversao_tipo.columns:
                 df_conversao_tipo[col] = 0.0 # Adiciona a coluna com zeros se estiver faltando
+            # Garante que a coluna é numérica, convertendo se necessário e preenchendo NaNs com 0
+            df_conversao_tipo[col] = pd.to_numeric(df_conversao_tipo[col], errors='coerce').fillna(0)
 
         if not df_conversao_tipo.empty:
-            fig_conv_tipo = px.bar(df_conversao_tipo,
-                                x=df_conversao_tipo.index,
+            # Reset index para tornar 'tipo_servico' uma coluna regular para o Plotly Express
+            df_plot = df_conversao_tipo.reset_index()
+            fig_conv_tipo = px.bar(df_plot,
+                                x='tipo_servico', # Usa o nome da coluna após o reset_index
                                 y=['Convertido', 'Não Convertido'],
                                 title='Proporção de Conversão por Tipo de Serviço',
-                                labels={'value':'Proporção', 'variable':'Status'},
+                                labels={'value':'Proporção', 'variable':'Status', 'tipo_servico': 'Tipo de Serviço'}, # Atualiza os rótulos
                                 barmode='group')
             st.plotly_chart(fig_conv_tipo)
             st.markdown("""
