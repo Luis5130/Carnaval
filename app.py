@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px # Import plotly.express para gráficos mais simples
-import plotly.graph_objects as go # Para gráficos mais customizados
+import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 
 # --- Carregar dados ---
@@ -11,25 +11,27 @@ def carregar_dados():
     Carrega os dados para a aplicação a partir de um arquivo CSV.
     Certifique-se de que o arquivo 'dados_carnaval_2025.csv' esteja na mesma pasta do 'app.py'.
     """
-    try:
-        # Substitua "dados_carnaval_2025.csv" pelo nome exato do seu arquivo CSV
-        df = pd.read_csv("dados_carnaval_2025.csv")
+    with st.spinner('Carregando dados... Por favor, aguarde.'): # Adiciona um spinner de carregamento
+        try:
+            # Substitua "dados_carnaval_2025.csv" pelo nome exato do seu arquivo CSV
+            # low_memory=False pode ser útil para arquivos grandes, mas pode aumentar o uso de RAM
+            df = pd.read_csv("dados_carnaval_2025.csv", low_memory=False)
 
-        # As colunas já virão formatadas da query, mas se precisar de ajustes, faça aqui:
-        # Exemplo: converter tempo_de_resposta_horas para string formatada para exibição
-        # df['tempo_de_resposta_horas_formatado'] = df['tempo_de_resposta_horas'].apply(lambda x: f"{x:.2f} horas" if pd.notnull(x) else None)
+            # As colunas já virão formatadas da query, mas se precisar de ajustes, faça aqui:
+            # Exemplo: converter tempo_de_resposta_horas para string formatada para exibição
+            # df['tempo_de_resposta_horas_formatado'] = df['tempo_de_resposta_horas'].apply(lambda x: f"{x:.2f} horas" if pd.notnull(x) else None)
 
-        # Se houver colunas de data/hora que precisarão ser tratadas como datetime no Python
-        # df['dt_checkin'] = pd.to_datetime(df['dt_checkin'])
-        # df['dt_checkout'] = pd.to_datetime(df['dt_checkout'])
+            # Se houver colunas de data/hora que precisarão ser tratadas como datetime no Python
+            # df['dt_checkin'] = pd.to_datetime(df['dt_checkin'])
+            # df['dt_checkout'] = pd.to_datetime(df['dt_checkout'])
 
-        return df
-    except FileNotFoundError:
-        st.error("Arquivo 'dados_carnaval_2025.csv' não encontrado. Por favor, certifique-se de que o arquivo está na mesma pasta do 'app.py'.")
-        st.stop()
-    except Exception as e:
-        st.error(f"Ocorreu um erro ao carregar o CSV: {e}")
-        st.stop()
+            return df
+        except FileNotFoundError:
+            st.error("Arquivo 'dados_carnaval_2025.csv' não encontrado. Por favor, certifique-se de que o arquivo está na mesma pasta do 'app.py'.")
+            st.stop()
+        except Exception as e:
+            st.error(f"Ocorreu um erro ao carregar o CSV: {e}")
+            st.stop()
 
 # Carrega os dados uma vez
 df = carregar_dados()
